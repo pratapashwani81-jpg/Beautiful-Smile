@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Romantic Card ❤️</title>
+<title>Envelope Card ❤️</title>
 <style>
 body {
     margin: 0;
@@ -17,40 +17,22 @@ body {
     position: relative;
 }
 
-/* Question text */
-#question {
-    position: absolute;
-    top: 20%;
-    width: 100%;
-    text-align: center;
-    color: #e91e63;
-    font-size: 1.5em;
+/* Envelope container */
+.envelope-container {
+    position: relative;
+    width: 320px;
+    height: 180px;
+    perspective: 600px; /* For flap 3D rotation */
 }
 
-/* Buttons */
-button {
-    padding: 15px 25px;
-    font-size: 1em;
-    margin: 15px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    position: absolute;
-}
-
-#yes { background-color: #ff69b4; color: white; }
-#no { background-color: #f0f0f0; color: black; }
-
-/* Envelope */
+/* Envelope body */
 .envelope {
     position: absolute;
-    bottom: 0;
-    width: 300px;
-    height: 150px;
+    width: 100%;
+    height: 100%;
     background: #e91e63;
     border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -58,8 +40,23 @@ button {
     font-weight: bold;
     font-size: 1.2em;
     cursor: pointer;
-    transform: translateY(0);
-    transition: transform 1.2s ease;
+    overflow: hidden;
+    z-index: 2;
+}
+
+/* Flap */
+.flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: #ff4d88;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    transform-origin: top;
+    transition: transform 1s ease;
+    z-index: 3;
 }
 
 /* Card inside envelope */
@@ -72,24 +69,40 @@ button {
     border-radius: 20px;
     text-align: center;
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    transform: translateY(0);
     opacity: 0;
+    transform: translateY(0);
     transition: transform 1.5s ease, opacity 1.5s ease;
+    z-index: 1;
 }
 
 .card.show {
-    transform: translateY(-180px);
+    transform: translateY(-200px);
     opacity: 1;
 }
 
-p {
-    color: #444;
+#message {
     font-size: 1.1em;
+    color: #444;
     line-height: 1.5;
 }
 
-/* Floating roses */
-.rose {
+/* Buttons inside envelope */
+button {
+    padding: 12px 25px;
+    font-size: 1em;
+    margin: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+#yes { background-color: #ff69b4; color: white; }
+#no { background-color: #f0f0f0; color: black; }
+
+/* Floating hearts and roses */
+.floating {
     position: absolute;
     font-size: 24px;
     animation: float 10s linear infinite;
@@ -103,67 +116,73 @@ p {
 }
 
 @media (max-width: 500px) {
+    .envelope-container { width: 260px; height: 150px; }
     .card { width: 240px; padding: 20px; }
-    button { padding: 12px 20px; font-size: 0.9em; }
-    #question { font-size: 1.2em; }
-    .envelope { width: 220px; height: 120px; font-size: 1em; }
+    button { padding: 10px 20px; font-size: 0.9em; }
 }
 </style>
 </head>
-
 <body>
 
-<h2 id="question">Do you want to open a card? 💌</h2>
-
-<button id="yes" style="top:50%; left:30%;" onclick="openEnvelope()">Yes</button>
-<button id="no" style="top:50%; left:60%;">No</button>
-
-<div class="envelope" id="envelope">Click to Open 💌</div>
-
-<div class="card" id="card">
-    <p>Your smiling face makes my day; always keep smiling. 😊</p>
+<div class="envelope-container">
+    <div class="envelope" id="envelope">
+        <div class="flap" id="flap"></div>
+        <div id="question">Do you want to open a card? 💌</div>
+        <div id="buttons">
+            <button id="yes">Yes</button>
+            <button id="no">No</button>
+        </div>
+    </div>
+    <div class="card" id="card">
+        <div id="message">Your smiling face makes my day; always keep smiling. 😊</div>
+    </div>
 </div>
 
 <script>
 const noBtn = document.getElementById('no');
+const yesBtn = document.getElementById('yes');
+const flap = document.getElementById('flap');
 const envelope = document.getElementById('envelope');
 const card = document.getElementById('card');
+const buttons = document.getElementById('buttons');
 const question = document.getElementById('question');
 
+// Make No button dodge inside envelope
 noBtn.addEventListener('mouseenter', () => {
-    const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-    const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+    const x = Math.random() * (envelope.offsetWidth - noBtn.offsetWidth);
+    const y = Math.random() * 50;
+    noBtn.style.position = 'absolute';
     noBtn.style.left = x + "px";
     noBtn.style.top = y + "px";
 });
 
-function openEnvelope() {
+// Yes button opens flap and card
+yesBtn.addEventListener('click', () => {
     // Hide buttons and question
-    document.getElementById('yes').style.display = 'none';
-    document.getElementById('no').style.display = 'none';
+    buttons.style.display = 'none';
     question.style.display = 'none';
 
-    // Animate envelope moving up slightly
-    envelope.style.transform = 'translateY(-200px)';
+    // Open flap
+    flap.style.transform = 'rotateX(-180deg)';
 
-    // Show card sliding out slowly
+    // Slide card out after delay
     setTimeout(() => {
         card.classList.add('show');
-        envelope.style.display = 'none'; // hide envelope after card appears
-    }, 800);
-}
+        envelope.style.display = 'none'; // hide envelope after card slides
+    }, 1000);
+});
 
-// Floating emoji roses
-function createRose() {
-    const rose = document.createElement("div");
-    rose.className = "rose";
-    rose.innerHTML = "🌹";
-    rose.style.left = Math.random() * 100 + "vw";
-    rose.style.animationDuration = (6 + Math.random() * 6) + "s";
-    document.body.appendChild(rose);
-    setTimeout(() => { rose.remove(); }, 12000);
+// Floating hearts and roses
+function createFloating() {
+    const floating = document.createElement("div");
+    floating.className = "floating";
+    floating.innerHTML = Math.random() < 0.5 ? "❤️" : "🌹";
+    floating.style.left = Math.random() * 100 + "vw";
+    floating.style.animationDuration = (6 + Math.random() * 6) + "s";
+    document.body.appendChild(floating);
+    setTimeout(() => { floating.remove(); }, 12000);
 }
-setInterval(createRose, 800);
+setInterval(createFloating, 600);
 </script>
 
 </body>
